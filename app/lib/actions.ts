@@ -23,15 +23,22 @@ export async function createInvoice(formData: FormData) {
     amount: formData.get('amount'),
     status: formData.get('status'),
   });
-  
+
   const amountInCents = amount * 100;
   const date = new Date().toISOString().split('T')[0];
 
-  await sql`
+  try {
+    await sql`
     INSERT INTO invoices (customer_id, amount, status, date)
     VALUES (${customerId}, ${amountInCents}, ${status}, ${date})
   `;
+  } catch (error) {
+    // We'll log the error to the console for now
+    console.error(error);
+  }
 
+  // Note how redirect is being called outside of the try/catch block. 
+  // This is because redirect works by throwing an error, which would be caught by the catch block. 
   revalidatePath('/dashboard/invoices'); //Clear router cache on that route
   redirect('/dashboard/invoices');
 }
@@ -44,15 +51,20 @@ export async function updateInvoice(id: string, formData: FormData) {
     amount: formData.get('amount'),
     status: formData.get('status'),
   });
- 
+
   const amountInCents = amount * 100;
- 
-  await sql`
+
+  try {
+    await sql`
     UPDATE invoices
     SET customer_id = ${customerId}, amount = ${amountInCents}, status = ${status}
     WHERE id = ${id}
   `;
- 
+  } catch (error) {
+    // We'll log the error to the console for now
+    console.error(error);
+  }
+
   revalidatePath('/dashboard/invoices');
   redirect('/dashboard/invoices');
 }
